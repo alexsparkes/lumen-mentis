@@ -69,14 +69,14 @@ export default function ProjectPage() {
 
   if (!slug) {
     return (
-      <div className="flex items-center justify-center h-screen bg-neutral-950 text-white">
+      <div className="flex items-center justify-center h-screen w-full bg-neutral-950 text-white">
         <p>Loading project...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-full bg-neutral-950 text-white p-6">
+    <div className="w-full bg-neutral-950 text-white p-6">
       <div className="max-w-4xl mx-auto">
         {/* Project Header */}
         <div className="bg-neutral-900 p-6 rounded-lg shadow-lg">

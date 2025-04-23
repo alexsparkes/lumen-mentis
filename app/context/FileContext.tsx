@@ -22,7 +22,8 @@ interface FileContextType {
   file: File | null;
   setFile: (file: File | null) => void;
   uploadedFiles: UploadedFile[];
-  deleteFile: (fileName: string) => void; // New method to delete a file
+  deleteFile: (fileName: string) => void;
+  downloadFile: (fileName: string) => void; // New method to download a file
 }
 
 const FileContext = createContext<FileContextType | undefined>(undefined);
@@ -66,8 +67,23 @@ export function FileProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const downloadFile = (fileName: string) => {
+    const file = uploadedFiles.find((f) => f.name === fileName);
+    if (file) {
+      const blob = new Blob([file.content], { type: "text/markdown" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+  };
+
   return (
-    <FileContext.Provider value={{ file, setFile, uploadedFiles, deleteFile }}>
+    <FileContext.Provider
+      value={{ file, setFile, uploadedFiles, deleteFile, downloadFile }}
+    >
       {children}
     </FileContext.Provider>
   );

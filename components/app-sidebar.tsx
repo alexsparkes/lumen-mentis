@@ -19,6 +19,7 @@ import {
   Trash2,
   Plus, // Import the Plus icon
   FolderOpen, // Import the FolderOpen icon
+  Download, // Import the Download icon
 } from "lucide-react";
 
 import { useRef, useState } from "react";
@@ -183,7 +184,7 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { file, setFile, uploadedFiles, deleteFile } = useFile(); // Access deleteFile
+  const { file, setFile, uploadedFiles, deleteFile, downloadFile } = useFile(); // Access downloadFile
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pathname = usePathname(); // Get the current route
@@ -343,6 +344,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       <DropdownMenuItem>
                         <Share className="text-muted-foreground" />
                         <span>Share Project</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => downloadFile(file.name)} // Add Download option
+                      >
+                        <Download className="text-muted-foreground" />
+                        <span>Download</span>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem

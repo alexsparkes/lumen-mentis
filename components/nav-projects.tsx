@@ -5,6 +5,7 @@ import {
   MoreHorizontal,
   Share,
   Trash2,
+  Download, // Import the Download icon
   type LucideIcon,
 } from "lucide-react";
 
@@ -36,12 +37,16 @@ export function NavProjects({
   }[];
 }) {
   const { isMobile } = useSidebar();
-  const { deleteFile } = useFile(); // Access deleteFile from context
+  const { deleteFile, downloadFile } = useFile(); // Access downloadFile from context
 
   const handleDelete = (fileName: string) => {
     if (confirm(`Are you sure you want to delete "${fileName}"?`)) {
       deleteFile(fileName);
     }
+  };
+
+  const handleDownload = (fileName: string) => {
+    downloadFile(fileName); // Call downloadFile
   };
 
   return (
@@ -76,12 +81,18 @@ export function NavProjects({
                   <Share className="text-muted-foreground" />
                   <span>Share Project</span>
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleDownload(item.name)} // Add Download option
+                >
+                  <Download className="text-muted-foreground" />
+                  <span>Download</span>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => handleDelete(item.name)} // Call handleDelete
                 >
                   <Trash2 className="text-muted-foreground" />
-                  <span>Delete Project</span>
+                  <span>Delete Projecteee</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
