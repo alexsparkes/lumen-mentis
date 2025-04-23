@@ -163,24 +163,24 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { file, setFile } = useFile();
+  const { file, setFile, uploadedFiles } = useFile();
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent parent elements from interfering
+    e.stopPropagation();
     setIsDragging(true);
   };
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.stopPropagation(); // Prevent parent elements from interfering
+    e.stopPropagation();
     setIsDragging(false);
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent parent elements from interfering
+    e.stopPropagation();
     setIsDragging(false);
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile && droppedFile.name.endsWith(".md")) {
@@ -247,8 +247,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           onDrop={handleDrop}
         />
         <NavProjects projects={data.pages} />
-        <NavProjects projects={data.projects} />
-        {/* <NavMain items={data.navMain} /> */}
+        <NavProjects
+          projects={uploadedFiles.map((file) => ({
+            name: file.name,
+            url: "#",
+            icon: SquareTerminal,
+          }))}
+        />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
