@@ -2,7 +2,6 @@ import { FaFolderOpen } from "react-icons/fa";
 
 interface FileDropAreaProps {
   isDragging: boolean;
-  selectedFile: File | null;
   handleChooseFileClick: () => void;
   fileInputRef: React.RefObject<HTMLInputElement | null>; // Allow null
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -13,7 +12,6 @@ interface FileDropAreaProps {
 
 export default function FileDropArea({
   isDragging,
-  selectedFile,
   handleChooseFileClick,
   fileInputRef,
   handleFileChange,
@@ -25,7 +23,7 @@ export default function FileDropArea({
     <div
       className={`bg-neutral-900 p-10 rounded-lg border-2 border-dashed transition-all duration-300 ${
         isDragging ? "border-[#6B00FF]" : "border-neutral-800"
-      } shadow-lg  mx-auto text-center`}
+      } shadow-lg mx-auto text-center`}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
@@ -36,20 +34,16 @@ export default function FileDropArea({
         </div>
       </div>
       <div>
-        {selectedFile ? (
-          <p className="text-neutral-300">{selectedFile.name}</p>
-        ) : (
-          <p className="text-sm text-neutral-400 mt-2">
-            Drag and drop your markdown file here or{" "}
-            <span
-              className="text-[#6B00FF] underline cursor-pointer"
-              onClick={handleChooseFileClick}
-            >
-              choose file
-            </span>
-            .
-          </p>
-        )}
+        <p className="text-sm text-neutral-400 mt-2">
+          Drag and drop your markdown file here or{" "}
+          <span
+            className="text-[#6B00FF] underline cursor-pointer"
+            onClick={handleChooseFileClick}
+          >
+            choose file
+          </span>
+          .
+        </p>
       </div>
       <input
         ref={fileInputRef}

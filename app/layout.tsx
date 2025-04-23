@@ -94,7 +94,7 @@ export default function RootLayout({
                   )}
                 </div>
               </header>
-              <div className="flex flex-1 items-center justify-center bg-neutral-900">
+              <div className=" bg-neutral-900">
                 <ServiceWorkerProvider>{children}</ServiceWorkerProvider>
               </div>
             </SidebarInset>

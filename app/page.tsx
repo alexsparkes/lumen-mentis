@@ -13,15 +13,15 @@ export default function Home() {
 
   return (
     <div
-      className={`flex flex-col items-center justify-center transition-colors duration-300 w-full ${
+      className={`max-w-screen-xl mx-auto flex flex-col items-center justify-center transition-colors duration-300 w-full ${
         isDragging ? "bg-neutral-800" : "bg-neutral-950"
       }`}
     >
       <main className="w-full px-6 py-10">
-        <h1 className="text-5xl font-bold text-white text-center mb-8">
+        <h1 className="text-5xl font-bold text-white mb-8">
           Welcome to Lumen Mentis
         </h1>
-        <p className="text-neutral-400 text-center mb-12 text-lg">
+        <p className="text-neutral-400 mb-12 text-lg">
           Manage your markdown files, create flashcards, and track your learning
           progress.
         </p>

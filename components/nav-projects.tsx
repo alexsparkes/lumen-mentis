@@ -26,6 +26,17 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useFile } from "@/app/context/FileContext";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 
 export function NavProjects({
   projects,
@@ -37,12 +48,10 @@ export function NavProjects({
   }[];
 }) {
   const { isMobile } = useSidebar();
-  const { deleteFile, downloadFile } = useFile(); // Access downloadFile from context
+  const { deleteFile, downloadFile } = useFile(); // Access deleteFile and downloadFile from context
 
   const handleDelete = (fileName: string) => {
-    if (confirm(`Are you sure you want to delete "${fileName}"?`)) {
-      deleteFile(fileName);
-    }
+    deleteFile(fileName);
   };
 
   const handleDownload = (fileName: string) => {
@@ -89,21 +98,41 @@ export function NavProjects({
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => handleDelete(item.name)} // Call handleDelete
+                  onSelect={(e) => e.preventDefault()} // Prevent DropdownMenu from closing
                 >
-                  <Trash2 className="text-muted-foreground" />
-                  <span>Delete Projecteee</span>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <div className="flex items-center gap-2 cursor-pointer">
+                        <Trash2 className="text-muted-foreground" />
+                        <span>Delete Project</span>
+                      </div>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          Are you sure you want to delete &quot;{item.name}
+                          &quot;?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently
+                          delete the project.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDelete(item.name)}
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>
         ))}
-        <SidebarMenuItem>
-          <SidebarMenuButton>
-            <MoreHorizontal />
-            <span>More</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>
   );

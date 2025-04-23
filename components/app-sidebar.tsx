@@ -240,7 +240,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <a href="#">
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                <div className="text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg p-1">
                   <svg
                     width="35.25"
                     height="54"
@@ -253,26 +253,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <path d="M23.944 43.28L15.112 16.88H14.92L14.584 15.488L16.888 7.232H18.328L30.376 43.28H23.944ZM0.232 44V42.8H11.752V44H0.232ZM9.592 32.672V31.472H25.144V32.672H9.592ZM18.184 44V42.8H34.648V44H18.184ZM4.36 43.28L16.888 7.232H18.328L15.4 15.488L5.944 43.28H4.36Z" />
                   </svg>
                 </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">Alex Sparkes</span>
-                  <span className="truncate text-xs">Enterprise</span>
-                </div>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <FileDropArea
-          isDragging={isDragging}
-          selectedFile={file}
-          handleChooseFileClick={handleChooseFileClick}
-          fileInputRef={fileInputRef}
-          handleFileChange={handleFileChange}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        />
         <SidebarGroup className="group-data-[collapsible=icon]:hidden">
           <SidebarMenu>
             <SidebarMenuItem>
@@ -312,67 +298,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             Create New
           </Button>
         </div>
-        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-          <SidebarGroupLabel>Projects</SidebarGroupLabel>
-          <SidebarMenu>
-            {uploadedFiles.map((file) => {
-              const isActive =
-                pathname === `/projects/${encodeURIComponent(file.name)}`;
-              return (
-                <SidebarMenuItem key={file.name}>
-                  <SidebarMenuButton
-                    asChild
-                    className={`${isActive ? "bg-neutral-800 text-white" : ""}`}
-                  >
-                    <Link href={`/projects/${encodeURIComponent(file.name)}`}>
-                      <SquareTerminal />
-                      <span>{file.name}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <SidebarMenuAction showOnHover>
-                        <MoreHorizontal />
-                        <span className="sr-only">More</span>
-                      </SidebarMenuAction>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-48">
-                      <DropdownMenuItem>
-                        <Folder className="text-muted-foreground" />
-                        <span>View Project</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Share className="text-muted-foreground" />
-                        <span>Share Project</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => downloadFile(file.name)} // Add Download option
-                      >
-                        <Download className="text-muted-foreground" />
-                        <span>Download</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => {
-                          if (
-                            confirm(
-                              `Are you sure you want to delete "${file.name}"?`
-                            )
-                          ) {
-                            deleteFile(file.name); // Call deleteFile
-                          }
-                        }}
-                      >
-                        <Trash2 className="text-muted-foreground" />
-                        <span>Delete Project</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </SidebarMenuItem>
-              );
-            })}
-          </SidebarMenu>
-        </SidebarGroup>
+        <FileDropArea
+          isDragging={isDragging}
+          selectedFile={file}
+          handleChooseFileClick={handleChooseFileClick}
+          fileInputRef={fileInputRef}
+          handleFileChange={handleFileChange}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        />
+        <NavProjects
+          projects={uploadedFiles.map((file) => ({
+            name: file.name,
+            url: `/projects/${encodeURIComponent(file.name)}`,
+            icon: SquareTerminal,
+          }))}
+        />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
