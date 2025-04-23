@@ -14,28 +14,36 @@ export default function ActionButtons({ selectedFile }: ActionButtonsProps) {
         </Button>
       </Link>
       <div className="flex gap-4">
-        <Link href="/edit">
+        {selectedFile ? (
+          <Link href="/edit">
+            <Button variant="default" className="py-2 px-6">
+              Edit
+            </Button>
+          </Link>
+        ) : (
           <Button
             variant="default"
-            className={`py-2 px-6 ${
-              !selectedFile ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-            disabled={!selectedFile}
+            className="py-2 px-6 opacity-50 cursor-not-allowed"
+            disabled
           >
             Edit
           </Button>
-        </Link>
-        <Link href="/learn">
+        )}
+        {selectedFile ? (
+          <Link href="/learn">
+            <Button variant="default" className="py-2 px-6">
+              Learn
+            </Button>
+          </Link>
+        ) : (
           <Button
             variant="default"
-            className={`py-2 px-6 ${
-              !selectedFile ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-            disabled={!selectedFile}
+            className="py-2 px-6 opacity-50 cursor-not-allowed"
+            disabled
           >
             Learn
           </Button>
-        </Link>
+        )}
       </div>
     </div>
   );

@@ -108,6 +108,12 @@ export default function LearnPage() {
     }
   };
 
+  const handleDontKnow = () => {
+    const correctTerm = flashcards[currentQuestionIndex]?.term;
+    setSelectedAnswer(null); // No specific selection
+    setFeedback("incorrect"); // Treat as incorrect
+  };
+
   const moveToNextQuestion = () => {
     if (currentQuestionIndex + 1 < flashcards.length) {
       const nextQuestionIndex = currentQuestionIndex + 1;
@@ -178,9 +184,12 @@ export default function LearnPage() {
           </span>
         </p>
 
+        {!feedback && (
+          <p className="text-neutral-300 text-lg mb-4">Select your answer</p>
+        )}
         {feedback === "incorrect" && (
           <p className="text-red-500 text-lg mb-4">
-            Incorrect answer! Try again.
+            Incorrect answer! The correct answer is highlighted.
           </p>
         )}
         {feedback === "correct" && (
@@ -209,7 +218,12 @@ export default function LearnPage() {
         </div>
       </div>
       <div className="max-w-4xl w-full mt-6 flex flex-row items-center justify-between">
-        <span className="text-white">dont know?</span>
+        <button
+          onClick={handleDontKnow}
+          className="py-3 px-6 bg-neutral-700 text-white rounded-lg hover:bg-neutral-600 transition-all duration-300 cursor-pointer"
+        >
+          Don&apos;t know?
+        </button>
         {feedback && (
           <button
             onClick={moveToNextQuestion}
