@@ -17,6 +17,8 @@ import {
   Folder,
   Share,
   Trash2,
+  Plus, // Import the Plus icon
+  FolderOpen, // Import the FolderOpen icon
 } from "lucide-react";
 
 import { useRef, useState } from "react";
@@ -47,6 +49,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button"; // Import the Button component
 
 const data = {
   user: {
@@ -185,6 +188,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pathname = usePathname(); // Get the current route
 
+  const handleCreateNew = () => {
+    // Logic for creating a new project
+    alert("Create New Project clicked!");
+  };
+
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -279,8 +287,30 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                className={`${
+                  pathname === "/projects" ? "bg-neutral-800 text-white" : ""
+                }`}
+              >
+                <Link href="/projects">
+                  <FolderOpen />
+                  <span>Projects</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
+        <div className="px-2">
+          <Button
+            onClick={handleCreateNew}
+            className="w-full flex items-center justify-center gap-2 bg-[#6B00FF] text-white font-semibold py-2 rounded-md shadow-md hover:bg-[#5800cc] transition-all duration-300"
+          >
+            <Plus className="w-5 h-5" />
+            Create New
+          </Button>
+        </div>
         <SidebarGroup className="group-data-[collapsible=icon]:hidden">
           <SidebarGroupLabel>Projects</SidebarGroupLabel>
           <SidebarMenu>
