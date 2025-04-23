@@ -5,10 +5,11 @@ import {
   MoreHorizontal,
   Share,
   Trash2,
-  Download, // Import the Download icon
+  Download,
   type LucideIcon,
 } from "lucide-react";
-
+import Link from "next/link"; // Import Link from Next.js
+import { usePathname } from "next/navigation"; // Import usePathname
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,14 +49,15 @@ export function NavProjects({
   }[];
 }) {
   const { isMobile } = useSidebar();
-  const { deleteFile, downloadFile } = useFile(); // Access deleteFile and downloadFile from context
+  const { deleteFile, downloadFile } = useFile();
+  const pathname = usePathname(); // Get the current pathname
 
   const handleDelete = (fileName: string) => {
     deleteFile(fileName);
   };
 
   const handleDownload = (fileName: string) => {
-    downloadFile(fileName); // Call downloadFile
+    downloadFile(fileName);
   };
 
   return (
@@ -63,12 +65,17 @@ export function NavProjects({
       <SidebarGroupLabel>Projects</SidebarGroupLabel>
       <SidebarMenu>
         {projects.map((item) => (
-          <SidebarMenuItem key={item.name}>
+          <SidebarMenuItem
+            key={item.name}
+            className={pathname === item.url ? "bg-neutral-800 text-white" : ""} // Highlight active slug
+          >
             <SidebarMenuButton asChild>
-              <a href={item.url}>
+              <Link href={item.url}>
+                {" "}
+                {/* Use Link instead of <a> */}
                 <item.icon />
                 <span>{item.name}</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -90,16 +97,12 @@ export function NavProjects({
                   <Share className="text-muted-foreground" />
                   <span>Share Project</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleDownload(item.name)} // Add Download option
-                >
+                <DropdownMenuItem onClick={() => handleDownload(item.name)}>
                   <Download className="text-muted-foreground" />
                   <span>Download</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onSelect={(e) => e.preventDefault()} // Prevent DropdownMenu from closing
-                >
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <div className="flex items-center gap-2 cursor-pointer">

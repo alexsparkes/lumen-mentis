@@ -12,7 +12,7 @@ interface Flashcard {
 
 export default function LearnPage() {
   const router = useRouter();
-  const { uploadedFiles } = useFile();
+  const { uploadedFiles, recordQuizScore } = useFile();
   const [slug, setSlug] = useState<string | null>(null);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
@@ -33,41 +33,10 @@ export default function LearnPage() {
 
     const file = uploadedFiles.find((f) => f.name === pathSlug);
     if (file) {
-      parseFlashcards(file.content);
+      setFlashcards(file.flashcards); // Use in-memory data from context
+      generateQuestion(file.flashcards, 0); // Generate options for the first question
     }
   }, [uploadedFiles]);
-
-  const parseFlashcards = (content: string) => {
-    const lines = content.split("\n");
-    const parsedFlashcards: Flashcard[] = [];
-    let currentTerm = "";
-    let currentDefinition = "";
-
-    lines.forEach((line) => {
-      if (line.startsWith("## ")) {
-        if (currentTerm && currentDefinition) {
-          parsedFlashcards.push({
-            term: currentTerm,
-            definition: currentDefinition,
-          });
-        }
-        currentTerm = line.replace("## ", "").trim();
-        currentDefinition = "";
-      } else {
-        currentDefinition += `${line.trim()} `;
-      }
-    });
-
-    if (currentTerm && currentDefinition) {
-      parsedFlashcards.push({
-        term: currentTerm,
-        definition: currentDefinition,
-      });
-    }
-
-    setFlashcards(parsedFlashcards);
-    generateQuestion(parsedFlashcards, 0);
-  };
 
   const generateQuestion = (flashcards: Flashcard[], questionIndex: number) => {
     if (flashcards.length < 2) return;
@@ -107,6 +76,7 @@ export default function LearnPage() {
       generateQuestion(flashcards, nextQuestionIndex);
     } else {
       setIsQuizComplete(true);
+      recordQuizScore(slug!, correctCount); // Record the quiz score
     }
   };
 
@@ -165,11 +135,11 @@ export default function LearnPage() {
 
   return (
     <div className="">
-      <div className="w-full max-w-4xl mx-auto">
+      <div className="w-full max-w-3xl mx-auto">
         {/* Header */}
 
         {/* Flashcard Question */}
-        <div className="w-3xl bg-neutral-850 border border-neutral-700 p-6 rounded-lg text-left">
+        <div className="bg-neutral-850 border border-neutral-700 p-6 rounded-lg text-left">
           <span className="text-neutral-500 mb-6 text-lg float-end">
             {currentQuestionIndex + 1} / {flashcards.length}
           </span>

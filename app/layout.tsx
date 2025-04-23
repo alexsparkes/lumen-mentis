@@ -4,6 +4,8 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { FileProvider } from "./context/FileContext";
 import ServiceWorkerProvider from "./components/ServiceWorkerProvider";
+import { useMemo, useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // Import useRouter
 
 import { AppSidebar } from "@/components/app-sidebar";
 import {
@@ -21,7 +23,6 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -39,15 +40,37 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const [isMounted, setIsMounted] = useState(false);
+  const router = useRouter(); // Initialize router
+  const [isClient, setIsClient] = useState(false);
 
+  // Ensure breadcrumb rendering happens only on the client
   useEffect(() => {
-    setIsMounted(true); // Ensure breadcrumb rendering happens only after the component has mounted
+    setIsClient(true);
   }, []);
 
-  const pathSegments = isMounted ? pathname.split("/").filter(Boolean) : [];
-  const fileName = pathSegments[1] || ""; // Extract the file name (slug)
-  const currentPage = pathSegments[2] || ""; // Extract the current page (edit/learn)
+  // Prefetch the slug page when on /edit or /learn
+  useEffect(() => {
+    const pathSegments = pathname.split("/").filter(Boolean);
+    const fileName = pathSegments[1]; // Extract the file name (slug)
+    const currentPage = pathSegments[2]; // Extract the current page (edit/learn)
+
+    if (fileName && (currentPage === "edit" || currentPage === "learn")) {
+      router.prefetch(`/projects/${fileName}`); // Prefetch the slug page
+    }
+  }, [pathname, router]);
+
+  // Memoize breadcrumb items to avoid recalculating on every render
+  const breadcrumbItems = useMemo(() => {
+    if (!isClient) return { fileName: "", currentPage: "" }; // Fallback during SSR
+
+    const pathSegments = pathname.split("/").filter(Boolean);
+    const fileName = pathSegments[1] || ""; // Extract the file name (slug)
+    const currentPage = pathSegments[2] || ""; // Extract the current page (edit/learn)
+
+    return { fileName, currentPage };
+  }, [pathname, isClient]);
+
+  const { fileName, currentPage } = breadcrumbItems;
 
   return (
     <html lang="en">
@@ -66,7 +89,7 @@ export default function RootLayout({
                 <div className="flex items-center gap-2 px-4">
                   <SidebarTrigger className="-ml-1" />
                   <Separator orientation="vertical" className="mr-2 h-4" />
-                  {isMounted && (
+                  {isClient && ( // Render breadcrumb only on the client
                     <Breadcrumb>
                       <BreadcrumbList>
                         {fileName && (

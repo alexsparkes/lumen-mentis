@@ -22,7 +22,7 @@ import {
   Download, // Import the Download icon
 } from "lucide-react";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import { useFile } from "@/app/context/FileContext";
 import FileDropArea from "@/app/components/FileDropArea";
 import { NavMain } from "@/components/nav-main";
@@ -189,6 +189,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pathname = usePathname(); // Get the current route
 
+  const memoizedProjects = useMemo(
+    () =>
+      uploadedFiles.map((file) => ({
+        name: file.displayName || file.name, // Use display name if available
+        url: `/projects/${encodeURIComponent(file.name)}`,
+        icon: SquareTerminal,
+      })),
+    [uploadedFiles]
+  );
+
   const handleCreateNew = () => {
     // Logic for creating a new project
     alert("Create New Project clicked!");
@@ -308,13 +318,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         />
-        <NavProjects
-          projects={uploadedFiles.map((file) => ({
-            name: file.name,
-            url: `/projects/${encodeURIComponent(file.name)}`,
-            icon: SquareTerminal,
-          }))}
-        />
+        <NavProjects projects={memoizedProjects} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

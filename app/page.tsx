@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useFile } from "./context/FileContext";
 import FileDropArea from "./components/FileDropArea";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,19 @@ import { Plus, FolderOpen } from "lucide-react";
 
 export default function Home() {
   const [isDragging, setIsDragging] = useState(false);
-  const { file, uploadedFiles } = useFile();
+  const { uploadedFiles } = useFile();
+  const [currentPage, setCurrentPage] = useState(1);
+  const filesPerPage = 10; // Number of files to display per page
+
+  // Calculate the paginated files
+  const paginatedFiles = useMemo(() => {
+    const startIndex = (currentPage - 1) * filesPerPage;
+    const endIndex = startIndex + filesPerPage;
+    return uploadedFiles.slice(startIndex, endIndex);
+  }, [uploadedFiles, currentPage]);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(uploadedFiles.length / filesPerPage);
 
   return (
     <div
@@ -25,26 +37,6 @@ export default function Home() {
           Manage your markdown files, create flashcards, and track your learning
           progress.
         </p>
-
-        {/* File Drop Area */}
-        <div className="max-w-6xl mx-auto">
-          <FileDropArea
-            isDragging={isDragging}
-            selectedFile={file}
-            handleChooseFileClick={() => {}}
-            fileInputRef={{ current: null }}
-            handleFileChange={() => {}}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setIsDragging(true);
-            }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={(e) => {
-              e.preventDefault();
-              setIsDragging(false);
-            }}
-          />
-        </div>
 
         {/* Actions */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
@@ -70,7 +62,7 @@ export default function Home() {
               Recently Uploaded Files
             </h2>
             <ul className="space-y-4">
-              {uploadedFiles.map((file) => (
+              {paginatedFiles.map((file) => (
                 <li
                   key={file.name}
                   className="p-4 bg-neutral-900 rounded-lg shadow-md flex items-center justify-between"
@@ -85,6 +77,33 @@ export default function Home() {
                 </li>
               ))}
             </ul>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-6">
+                <Button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 mx-2 bg-neutral-700 text-white hover:bg-neutral-600 disabled:opacity-50"
+                >
+                  Previous
+                </Button>
+                <span className="text-white mx-2">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 mx-2 bg-neutral-700 text-white hover:bg-neutral-600 disabled:opacity-50"
+                >
+                  Next
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </main>

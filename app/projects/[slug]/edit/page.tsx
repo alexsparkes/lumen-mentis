@@ -14,9 +14,8 @@ interface Flashcard {
 
 export default function EditPage() {
   const router = useRouter();
-  const { uploadedFiles, setFile } = useFile();
+  const { uploadedFiles, getFileByName, updateFile } = useFile();
   const [slug, setSlug] = useState<string | null>(null);
-  const [fileContent, setFileContent] = useState<string | null>(null);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -28,49 +27,14 @@ export default function EditPage() {
       );
       setSlug(pathSlug);
 
-      // Find the file content based on the slug
-      const file = uploadedFiles.find((f) => f.name === pathSlug);
+      const file = getFileByName(pathSlug);
       if (file) {
-        setFileContent(file.content);
-        parseFileContent(file.content);
+        setTitle(file.displayName || file.name);
+        setDescription(file.description || "");
+        setFlashcards(file.flashcards); // Use pre-parsed flashcards
       }
     }
-  }, [uploadedFiles]);
-
-  const parseFileContent = (content: string) => {
-    const lines = content.split("\n");
-    const parsedFlashcards: Flashcard[] = [];
-    let currentTerm = "";
-    let currentDefinition = "";
-
-    lines.forEach((line) => {
-      if (line.startsWith("# ")) {
-        setTitle(line.replace("# ", "").trim());
-      } else if (line.startsWith("## ")) {
-        if (currentTerm && currentDefinition) {
-          parsedFlashcards.push({
-            term: currentTerm,
-            definition: currentDefinition,
-          });
-        }
-        currentTerm = line.replace("## ", "").trim();
-        currentDefinition = "";
-      } else if (line.trim() && !currentTerm) {
-        setDescription((prev) => `${prev}${line.trim()} `);
-      } else {
-        currentDefinition += `${line.trim()} `;
-      }
-    });
-
-    if (currentTerm && currentDefinition) {
-      parsedFlashcards.push({
-        term: currentTerm,
-        definition: currentDefinition,
-      });
-    }
-
-    setFlashcards(parsedFlashcards);
-  };
+  }, [getFileByName]);
 
   const handleFlashcardChange = (
     index: number,
@@ -94,16 +58,14 @@ export default function EditPage() {
   const saveChanges = () => {
     if (!slug) return;
 
+    // Generate updated markdown content
     const updatedContent = `# ${title}\n\n${description}\n\n${flashcards
-      .map((flashcard) => `## ${flashcard.term}\n\n${flashcard.definition}\n`)
+      .map((fc) => `## ${fc.term}\n\n${fc.definition}\n`)
       .join("")}`;
 
-    const updatedFiles = uploadedFiles.map((file) =>
-      file.name === slug ? { ...file, content: updatedContent } : file
-    );
+    // Use the context's updateFile method to update the file
+    updateFile(slug, flashcards);
 
-    localStorage.setItem("uploadedFiles", JSON.stringify(updatedFiles));
-    setFileContent(updatedContent);
     alert("Changes saved successfully!");
   };
 
@@ -112,7 +74,7 @@ export default function EditPage() {
   }
 
   return (
-    <div className="p-6 w-full mx-auto">
+    <div className="p-6 max-w-screen-xl mx-auto">
       <div className="flex flex-row justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-white">Edit Flashcards</h1>
