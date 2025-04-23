@@ -6,6 +6,9 @@ interface FileDropAreaProps {
   handleChooseFileClick: () => void;
   fileInputRef: React.RefObject<HTMLInputElement | null>; // Allow null
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
+  onDragLeave: (e: React.DragEvent<HTMLDivElement>) => void;
+  onDrop: (e: React.DragEvent<HTMLDivElement>) => void;
 }
 
 export default function FileDropArea({
@@ -14,12 +17,18 @@ export default function FileDropArea({
   handleChooseFileClick,
   fileInputRef,
   handleFileChange,
+  onDragOver,
+  onDragLeave,
+  onDrop,
 }: FileDropAreaProps) {
   return (
     <div
       className={`bg-neutral-900 p-10 rounded-lg border-2 border-dashed transition-all duration-300 ${
         isDragging ? "border-[#6B00FF]" : "border-neutral-800"
-      } shadow-lg w-[32rem] mx-auto text-center`}
+      } shadow-lg  mx-auto text-center`}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
     >
       <div className="flex justify-center mb-4">
         <div className="bg-[#6B00FF] w-16 h-16 rounded-full flex items-center justify-center">
