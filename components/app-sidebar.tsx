@@ -12,6 +12,11 @@ import {
   Send,
   Settings2,
   SquareTerminal,
+  Home,
+  MoreHorizontal,
+  Folder,
+  Share,
+  Trash2,
 } from "lucide-react";
 
 import { useRef, useState } from "react";
@@ -29,8 +34,19 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenuAction, // Added missing import
 } from "@/components/ui/sidebar";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const data = {
   user: {
@@ -164,9 +180,10 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { file, setFile, uploadedFiles } = useFile();
+  const { file, setFile, uploadedFiles, deleteFile } = useFile(); // Access deleteFile
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pathname = usePathname(); // Get the current route
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -247,13 +264,78 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         />
-        <NavProjects
-          projects={uploadedFiles.map((file) => ({
-            name: file.name,
-            url: `/projects/${encodeURIComponent(file.name)}`, // Dynamic route
-            icon: SquareTerminal,
-          }))}
-        />
+        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                className={`${
+                  pathname === "/" ? "bg-neutral-800 text-white" : ""
+                }`}
+              >
+                <Link href="/">
+                  <Home />
+                  <span>Home</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
+        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+          <SidebarGroupLabel>Projects</SidebarGroupLabel>
+          <SidebarMenu>
+            {uploadedFiles.map((file) => {
+              const isActive =
+                pathname === `/projects/${encodeURIComponent(file.name)}`;
+              return (
+                <SidebarMenuItem key={file.name}>
+                  <SidebarMenuButton
+                    asChild
+                    className={`${isActive ? "bg-neutral-800 text-white" : ""}`}
+                  >
+                    <Link href={`/projects/${encodeURIComponent(file.name)}`}>
+                      <SquareTerminal />
+                      <span>{file.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <SidebarMenuAction showOnHover>
+                        <MoreHorizontal />
+                        <span className="sr-only">More</span>
+                      </SidebarMenuAction>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-48">
+                      <DropdownMenuItem>
+                        <Folder className="text-muted-foreground" />
+                        <span>View Project</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Share className="text-muted-foreground" />
+                        <span>Share Project</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          if (
+                            confirm(
+                              `Are you sure you want to delete "${file.name}"?`
+                            )
+                          ) {
+                            deleteFile(file.name); // Call deleteFile
+                          }
+                        }}
+                      >
+                        <Trash2 className="text-muted-foreground" />
+                        <span>Delete Project</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarGroup>
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

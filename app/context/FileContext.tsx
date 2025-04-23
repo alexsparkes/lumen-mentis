@@ -22,6 +22,7 @@ interface FileContextType {
   file: File | null;
   setFile: (file: File | null) => void;
   uploadedFiles: UploadedFile[];
+  deleteFile: (fileName: string) => void; // New method to delete a file
 }
 
 const FileContext = createContext<FileContextType | undefined>(undefined);
@@ -54,8 +55,19 @@ export function FileProvider({ children }: { children: ReactNode }) {
     }
   }, [file]);
 
+  const deleteFile = (fileName: string) => {
+    const updatedFiles = uploadedFiles.filter((f) => f.name !== fileName);
+    setUploadedFiles(updatedFiles);
+    localStorage.setItem("uploadedFiles", JSON.stringify(updatedFiles));
+
+    // If the currently selected file is deleted, reset the file state
+    if (file?.name === fileName) {
+      setFile(null);
+    }
+  };
+
   return (
-    <FileContext.Provider value={{ file, setFile, uploadedFiles }}>
+    <FileContext.Provider value={{ file, setFile, uploadedFiles, deleteFile }}>
       {children}
     </FileContext.Provider>
   );

@@ -21,6 +21,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -38,8 +39,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const pathSegments = pathname.split("/").filter(Boolean); // Split the path into segments
+  const [isMounted, setIsMounted] = useState(false);
 
+  useEffect(() => {
+    setIsMounted(true); // Ensure breadcrumb rendering happens only after the component has mounted
+  }, []);
+
+  const pathSegments = isMounted ? pathname.split("/").filter(Boolean) : [];
   const fileName = pathSegments[1] || ""; // Extract the file name (slug)
   const currentPage = pathSegments[2] || ""; // Extract the current page (edit/learn)
 
@@ -60,30 +66,32 @@ export default function RootLayout({
                 <div className="flex items-center gap-2 px-4">
                   <SidebarTrigger className="-ml-1" />
                   <Separator orientation="vertical" className="mr-2 h-4" />
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      {fileName && (
-                        <>
-                          <BreadcrumbItem>
-                            <BreadcrumbLink href={`/projects/${fileName}`}>
-                              {decodeURIComponent(fileName)}
-                            </BreadcrumbLink>
-                          </BreadcrumbItem>
-                        </>
-                      )}
-                      {currentPage && (
-                        <>
-                          <BreadcrumbSeparator />
-                          <BreadcrumbItem>
-                            <BreadcrumbPage>
-                              {currentPage.charAt(0).toUpperCase() +
-                                currentPage.slice(1)}
-                            </BreadcrumbPage>
-                          </BreadcrumbItem>
-                        </>
-                      )}
-                    </BreadcrumbList>
-                  </Breadcrumb>
+                  {isMounted && (
+                    <Breadcrumb>
+                      <BreadcrumbList>
+                        {fileName && (
+                          <>
+                            <BreadcrumbItem>
+                              <BreadcrumbLink href={`/projects/${fileName}`}>
+                                {decodeURIComponent(fileName)}
+                              </BreadcrumbLink>
+                            </BreadcrumbItem>
+                          </>
+                        )}
+                        {currentPage && (
+                          <>
+                            <BreadcrumbSeparator />
+                            <BreadcrumbItem>
+                              <BreadcrumbPage>
+                                {currentPage.charAt(0).toUpperCase() +
+                                  currentPage.slice(1)}
+                              </BreadcrumbPage>
+                            </BreadcrumbItem>
+                          </>
+                        )}
+                      </BreadcrumbList>
+                    </Breadcrumb>
+                  )}
                 </div>
               </header>
               <div className="flex flex-1 items-center justify-center bg-neutral-900">
