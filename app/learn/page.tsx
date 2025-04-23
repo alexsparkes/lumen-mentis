@@ -199,7 +199,7 @@ export default function LearnPage() {
 
   if (isQuizComplete) {
     return (
-      <main className="grid place-content-center h-screen w-screen">
+      <main className="grid place-content-center">
         <div>
           <div className="flex flex-row gap-10">
             <div className="p-10 max-w-4xl w-full bg-neutral-900 rounded-lg shadow-lg text-center">
@@ -279,7 +279,7 @@ export default function LearnPage() {
   }
 
   return (
-    <main className="flex flex-col items-center justify-center h-screen w-screen">
+    <main className="flex flex-col items-center justify-center">
       <div className="flex justify-start w-full max-w-4xl mb-6">
         <Link href="/" className="flex items-center text-white hover:underline">
           <FaArrowLeft className="mr-2" />

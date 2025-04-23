@@ -48,7 +48,7 @@ export default function Home() {
 
   return (
     <div
-      className={`grid place-content-center h-screen w-screen transition-colors duration-300 ${
+      className={`grid place-content-center transition-colors duration-300 ${
         isDragging ? "bg-neutral-800" : "bg-neutral-950"
       }`}
       onDragOver={handleDragOver}
