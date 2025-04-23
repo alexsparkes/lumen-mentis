@@ -1,3 +1,5 @@
+"use client";
+
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { FileProvider } from "./context/FileContext";
@@ -18,6 +20,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { usePathname } from "next/navigation";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -34,6 +37,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+  const pathSegments = pathname.split("/").filter(Boolean); // Split the path into segments
+
+  const fileName = pathSegments[1] || ""; // Extract the file name (slug)
+  const currentPage = pathSegments[2] || ""; // Extract the current page (edit/learn)
+
   return (
     <html lang="en">
       <head>
@@ -43,9 +52,6 @@ export default function RootLayout({
       <body
         className={`bg-neutral-950 ${inter.variable} ${jetBrainsMono.variable} antialiased`}
       >
-        {/* <FileProvider>
-          <ServiceWorkerProvider>{children}</ServiceWorkerProvider>
-        </FileProvider> */}
         <FileProvider>
           <SidebarProvider>
             <AppSidebar />
@@ -54,6 +60,30 @@ export default function RootLayout({
                 <div className="flex items-center gap-2 px-4">
                   <SidebarTrigger className="-ml-1" />
                   <Separator orientation="vertical" className="mr-2 h-4" />
+                  <Breadcrumb>
+                    <BreadcrumbList>
+                      {fileName && (
+                        <>
+                          <BreadcrumbItem>
+                            <BreadcrumbLink href={`/projects/${fileName}`}>
+                              {decodeURIComponent(fileName)}
+                            </BreadcrumbLink>
+                          </BreadcrumbItem>
+                        </>
+                      )}
+                      {currentPage && (
+                        <>
+                          <BreadcrumbSeparator />
+                          <BreadcrumbItem>
+                            <BreadcrumbPage>
+                              {currentPage.charAt(0).toUpperCase() +
+                                currentPage.slice(1)}
+                            </BreadcrumbPage>
+                          </BreadcrumbItem>
+                        </>
+                      )}
+                    </BreadcrumbList>
+                  </Breadcrumb>
                 </div>
               </header>
               <div className="flex flex-1 items-center justify-center bg-neutral-900">

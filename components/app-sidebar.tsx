@@ -30,6 +30,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import Link from "next/link";
 
 const data = {
   user: {
@@ -246,11 +247,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         />
-        <NavProjects projects={data.pages} />
         <NavProjects
           projects={uploadedFiles.map((file) => ({
             name: file.name,
-            url: "#",
+            url: `/projects/${encodeURIComponent(file.name)}`, // Dynamic route
             icon: SquareTerminal,
           }))}
         />
