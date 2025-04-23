@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useFile } from "./context/FileContext";
 import FileDropArea from "./components/FileDropArea";
-import UploadButton from "./components/UploadButton";
+import ActionButtons from "./components/ActionButtons";
 
 export default function Home() {
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { file, setFile } = useFile();
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -21,10 +22,10 @@ export default function Home() {
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (file && file.name.endsWith(".md")) {
-      setSelectedFile(file);
-      console.log("File dropped:", file);
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile && droppedFile.name.endsWith(".md")) {
+      setFile(droppedFile);
+      console.log("File dropped:", droppedFile);
     } else {
       alert("Only markdown files are allowed.");
     }
@@ -35,13 +36,13 @@ export default function Home() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && !file.name.endsWith(".md")) {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile && !selectedFile.name.endsWith(".md")) {
       alert("Only markdown files are allowed.");
       e.target.value = ""; // Reset the input
-    } else if (file) {
-      setSelectedFile(file);
-      console.log("File selected:", file);
+    } else if (selectedFile) {
+      setFile(selectedFile);
+      console.log("File selected:", selectedFile);
     }
   };
 
@@ -57,12 +58,12 @@ export default function Home() {
       <main>
         <FileDropArea
           isDragging={isDragging}
-          selectedFile={selectedFile}
+          selectedFile={file}
           handleChooseFileClick={handleChooseFileClick}
           fileInputRef={fileInputRef}
           handleFileChange={handleFileChange}
         />
-        <UploadButton selectedFile={selectedFile} />
+        <ActionButtons selectedFile={file} />
       </main>
     </div>
   );

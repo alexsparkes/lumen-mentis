@@ -4,7 +4,7 @@ interface FileDropAreaProps {
   isDragging: boolean;
   selectedFile: File | null;
   handleChooseFileClick: () => void;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>; // Allow null
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
