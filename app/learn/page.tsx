@@ -5,6 +5,25 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaArrowLeft } from "react-icons/fa";
+import { Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 export default function LearnPage() {
   const { file } = useFile();
@@ -20,6 +39,7 @@ export default function LearnPage() {
     null
   );
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [scoreHistory, setScoreHistory] = useState<number[]>([]);
 
   useEffect(() => {
     if (!file) {
@@ -35,6 +55,12 @@ export default function LearnPage() {
         parseMarkdown(content);
       };
       reader.readAsText(file);
+
+      // Load score history from localStorage
+      const storedScores = localStorage.getItem(file.name);
+      if (storedScores) {
+        setScoreHistory(JSON.parse(storedScores));
+      }
     }
   }, [file]);
 
@@ -109,7 +135,6 @@ export default function LearnPage() {
   };
 
   const handleDontKnow = () => {
-    const correctTerm = flashcards[currentQuestionIndex]?.term;
     setSelectedAnswer(null); // No specific selection
     setFeedback("incorrect"); // Treat as incorrect
   };
@@ -121,6 +146,13 @@ export default function LearnPage() {
       generateQuestion(flashcards, nextQuestionIndex);
     } else {
       setIsQuizComplete(true);
+
+      // Save the score to localStorage
+      if (file) {
+        const updatedScores = [...scoreHistory, score];
+        setScoreHistory(updatedScores);
+        localStorage.setItem(file.name, JSON.stringify(updatedScores));
+      }
     }
   };
 
@@ -131,6 +163,56 @@ export default function LearnPage() {
     generateQuestion(flashcards, 0);
   };
 
+  const chartData = {
+    labels: scoreHistory.map((_, index) => `Attempt ${index + 1}`),
+    datasets: [
+      {
+        label: "Percentage Correct",
+        data: scoreHistory.map(
+          (attemptScore) => (attemptScore / flashcards.length) * 100
+        ),
+        backgroundColor: "#6B00FF",
+        borderColor: "#5800cc",
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        callbacks: {
+          label: (context: any) => `${context.raw.toFixed(2)}%`,
+        },
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: 100,
+        ticks: {
+          callback: (value: number) => `${value}%`,
+        },
+      },
+    },
+  };
+
+  const stats = {
+    attempts: scoreHistory.length,
+    highest: Math.max(
+      ...scoreHistory.map((s) => (s / flashcards.length) * 100),
+      0
+    ).toFixed(2),
+    lowest: Math.min(
+      ...scoreHistory.map((s) => (s / flashcards.length) * 100),
+      100
+    ).toFixed(2),
+  };
+
   if (!file) {
     return null; // Prevent rendering while redirecting
   }
@@ -138,24 +220,50 @@ export default function LearnPage() {
   if (isQuizComplete) {
     return (
       <main className="grid place-content-center h-screen w-screen">
-        <div className="p-10 max-w-4xl w-full bg-neutral-900 rounded-lg shadow-lg text-center">
-          <h1 className="text-3xl font-bold text-white mb-6">Quiz Complete!</h1>
-          <p className="text-xl text-white mb-6">
-            You scored {score} out of {flashcards.length}.
-          </p>
-          <div className="flex justify-center gap-4">
-            <button
-              onClick={restartQuiz}
-              className="py-3 px-6 bg-[#6B00FF] text-white rounded-lg hover:bg-[#5800cc] transition-all duration-300"
-            >
-              Restart Quiz
-            </button>
-            <Link
-              href="/"
-              className="py-3 px-6 bg-neutral-700 text-white rounded-lg hover:bg-neutral-600 transition-all duration-300"
-            >
-              Go Home
-            </Link>
+        <div>
+          <div className="flex flex-row gap-10">
+            <div className="p-10 max-w-4xl w-full bg-neutral-900 rounded-lg shadow-lg text-center">
+              <h1 className="text-3xl font-bold text-white mb-6">
+                Quiz Complete!
+              </h1>
+              <p className="text-xl text-white mb-6">
+                You scored {score} out of {flashcards.length}.
+              </p>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={restartQuiz}
+                  className="py-3 px-6 bg-[#6B00FF] text-white rounded-lg hover:bg-[#5800cc] transition-all duration-300"
+                >
+                  Restart Quiz
+                </button>
+                <Link
+                  href="/"
+                  className="py-3 px-6 bg-neutral-700 text-white rounded-lg hover:bg-neutral-600 transition-all duration-300"
+                >
+                  Go Home
+                </Link>
+              </div>
+            </div>
+            <div className="p-10 max-w-4xl w-full bg-neutral-900 rounded-lg shadow-lg text-center">
+              <h2 className="text-xl font-semibold text-white mb-4">
+                Score History
+              </h2>
+              <Bar data={chartData} options={chartOptions} />
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-4 mt-6">
+            <div className="p-4 bg-neutral-800 rounded-lg">
+              <h3 className="text-lg font-semibold text-white">Attempts</h3>
+              <p className="text-xl text-white">{stats.attempts}</p>
+            </div>
+            <div className="p-4 bg-neutral-800 rounded-lg">
+              <h3 className="text-lg font-semibold text-white">Highest</h3>
+              <p className="text-xl text-white">{stats.highest}%</p>
+            </div>
+            <div className="p-4 bg-neutral-800 rounded-lg">
+              <h3 className="text-lg font-semibold text-white">Lowest</h3>
+              <p className="text-xl text-white">{stats.lowest}%</p>
+            </div>
           </div>
         </div>
       </main>
