@@ -2,19 +2,17 @@
 
 import { useFile } from "../context/FileContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function EditPage() {
-  const { file } = useFile();
+  const { file, title, description, flashcards } = useFile();
   const router = useRouter();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [flashcards, setFlashcards] = useState<
-    { term: string; definition: string }[]
-  >([]);
+  const [localTitle, setLocalTitle] = useState(title);
+  const [localDescription, setLocalDescription] = useState(description);
+  const [localFlashcards, setLocalFlashcards] = useState([...flashcards]);
 
   useEffect(() => {
     if (!file) {
@@ -22,92 +20,40 @@ export default function EditPage() {
     }
   }, [file, router]);
 
-  useEffect(() => {
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-        parseMarkdown(content);
-      };
-      reader.readAsText(file);
-    }
-  }, [file]);
-
-  const parseMarkdown = (content: string) => {
-    const lines = content.split("\n");
-    let currentTitle = "";
-    let currentDescription = "";
-    const parsedFlashcards: { term: string; definition: string }[] = [];
-
-    let currentTerm = "";
-    let currentDefinition = "";
-
-    lines.forEach((line) => {
-      if (line.startsWith("# ")) {
-        currentTitle = line.slice(2).trim();
-      } else if (line.startsWith("## ")) {
-        if (currentTerm && currentDefinition) {
-          parsedFlashcards.push({
-            term: currentTerm,
-            definition: currentDefinition.trim(),
-          });
-        }
-        currentTerm = line.slice(3).trim();
-        currentDefinition = "";
-      } else if (line.trim() === "") {
-        // Skip empty lines
-      } else {
-        currentDefinition += `${line.trim()}\n`;
-      }
-    });
-
-    // Add the last flashcard if it exists
-    if (currentTerm && currentDefinition) {
-      parsedFlashcards.push({
-        term: currentTerm,
-        definition: currentDefinition.trim(),
-      });
-    }
-
-    setTitle(currentTitle);
-    setDescription(currentDescription);
-    setFlashcards(parsedFlashcards);
-  };
-
   const handleFlashcardChange = (
     index: number,
     field: "term" | "definition",
     value: string
   ) => {
-    const updatedFlashcards = [...flashcards];
+    const updatedFlashcards = [...localFlashcards];
     updatedFlashcards[index][field] = value;
-    setFlashcards(updatedFlashcards);
+    setLocalFlashcards(updatedFlashcards);
   };
 
   const addFlashcard = () => {
-    setFlashcards([...flashcards, { term: "", definition: "" }]);
+    setLocalFlashcards([...localFlashcards, { term: "", definition: "" }]);
   };
 
   const removeFlashcard = (index: number) => {
-    const updatedFlashcards = flashcards.filter((_, i) => i !== index);
-    setFlashcards(updatedFlashcards);
+    const updatedFlashcards = localFlashcards.filter((_, i) => i !== index);
+    setLocalFlashcards(updatedFlashcards);
   };
 
   const exportFlashcards = () => {
-    const markdownContent = `# ${title}\n\n${description}\n\n${flashcards
+    const markdownContent = `# ${localTitle}\n\n${localDescription}\n\n${localFlashcards
       .map((flashcard) => `## ${flashcard.term}\n\n${flashcard.definition}\n`)
       .join("")}`;
     const blob = new Blob([markdownContent], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${title.replace(/\s+/g, "_").toLowerCase()}.md`;
+    link.download = `${localTitle.replace(/\s+/g, "_").toLowerCase()}.md`;
     link.click();
     URL.revokeObjectURL(url);
   };
 
   if (!file) {
-    return null; // Prevent rendering while redirecting
+    return null;
   }
 
   return (
@@ -132,8 +78,8 @@ export default function EditPage() {
         </label>
         <Input
           type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          value={localTitle}
+          onChange={(e) => setLocalTitle(e.target.value)}
         />
       </div>
 
@@ -143,8 +89,8 @@ export default function EditPage() {
           Description
         </label>
         <Textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          value={localDescription}
+          onChange={(e) => setLocalDescription(e.target.value)}
           rows={3}
         />
       </div>
@@ -152,7 +98,7 @@ export default function EditPage() {
       {/* Flashcards */}
       <div>
         <h2 className="text-lg font-semibold text-white mb-4">Flashcards</h2>
-        {flashcards.map((flashcard, index) => (
+        {localFlashcards.map((flashcard, index) => (
           <div
             key={index}
             className="mb-4 p-4 bg-neutral-800 rounded-lg border border-neutral-700"

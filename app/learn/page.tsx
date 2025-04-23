@@ -14,6 +14,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  TooltipItem,
 } from "chart.js";
 
 ChartJS.register(
@@ -26,11 +27,8 @@ ChartJS.register(
 );
 
 export default function LearnPage() {
-  const { file } = useFile();
+  const { file, flashcards } = useFile();
   const router = useRouter();
-  const [flashcards, setFlashcards] = useState<
-    { term: string; definition: string }[]
-  >([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [options, setOptions] = useState<string[]>([]);
   const [score, setScore] = useState(0);
@@ -44,82 +42,34 @@ export default function LearnPage() {
   useEffect(() => {
     if (!file) {
       router.push("/");
-    }
-  }, [file, router]);
-
-  useEffect(() => {
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-        parseMarkdown(content);
-      };
-      reader.readAsText(file);
-
-      // Load score history from localStorage
+    } else {
+      generateQuestion(flashcards, 0);
       const storedScores = localStorage.getItem(file.name);
       if (storedScores) {
         setScoreHistory(JSON.parse(storedScores));
       }
     }
-  }, [file]);
-
-  const parseMarkdown = (content: string) => {
-    const lines = content.split("\n");
-    const parsedFlashcards: { term: string; definition: string }[] = [];
-
-    let currentTerm = "";
-    let currentDefinition = "";
-
-    lines.forEach((line) => {
-      if (line.startsWith("## ")) {
-        if (currentTerm && currentDefinition) {
-          parsedFlashcards.push({
-            term: currentTerm,
-            definition: currentDefinition.trim(),
-          });
-        }
-        currentTerm = line.slice(3).trim();
-        currentDefinition = "";
-      } else if (line.trim() === "") {
-        // Skip empty lines
-      } else {
-        currentDefinition += `${line.trim()}\n`;
-      }
-    });
-
-    // Add the last flashcard if it exists
-    if (currentTerm && currentDefinition) {
-      parsedFlashcards.push({
-        term: currentTerm,
-        definition: currentDefinition.trim(),
-      });
-    }
-
-    setFlashcards(parsedFlashcards);
-    generateQuestion(parsedFlashcards, 0);
-  };
+  }, [file, flashcards, router]);
 
   const generateQuestion = (
     flashcards: { term: string; definition: string }[],
     questionIndex: number
   ) => {
-    if (flashcards.length < 2) return; // Need at least two flashcards for options
+    if (flashcards.length < 2) return;
 
     const question = flashcards[questionIndex];
-
     const shuffledOptions = flashcards
-      .filter((_, index) => index !== questionIndex) // Exclude the correct answer
+      .filter((_, index) => index !== questionIndex)
       .map((fc) => fc.term)
-      .sort(() => Math.random() - 0.5) // Shuffle the options
-      .slice(0, 3); // Take 3 random incorrect options
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3);
 
-    shuffledOptions.push(question.term); // Add the correct answer
-    shuffledOptions.sort(() => Math.random() - 0.5); // Shuffle again
+    shuffledOptions.push(question.term);
+    shuffledOptions.sort(() => Math.random() - 0.5);
 
     setOptions(shuffledOptions);
-    setFeedback(null); // Reset feedback for the new question
-    setSelectedAnswer(null); // Reset selected answer
+    setFeedback(null);
+    setSelectedAnswer(null);
   };
 
   const handleAnswer = (selectedTerm: string) => {
@@ -135,8 +85,8 @@ export default function LearnPage() {
   };
 
   const handleDontKnow = () => {
-    setSelectedAnswer(null); // No specific selection
-    setFeedback("incorrect"); // Treat as incorrect
+    setSelectedAnswer(null);
+    setFeedback("incorrect");
   };
 
   const moveToNextQuestion = () => {
@@ -147,7 +97,6 @@ export default function LearnPage() {
     } else {
       setIsQuizComplete(true);
 
-      // Save the score to localStorage
       if (file) {
         const updatedScores = [...scoreHistory, score];
         setScoreHistory(updatedScores);
@@ -186,7 +135,8 @@ export default function LearnPage() {
       },
       tooltip: {
         callbacks: {
-          label: (context: any) => `${context.raw.toFixed(2)}%`,
+          label: (context: TooltipItem<"bar">) =>
+            `${(context.raw as number).toFixed(2)}%`,
         },
       },
     },
@@ -195,7 +145,9 @@ export default function LearnPage() {
         beginAtZero: true,
         max: 100,
         ticks: {
-          callback: (value: number) => `${value}%`,
+          callback: function (tickValue: string | number) {
+            return `${tickValue}%`;
+          },
         },
       },
     },
@@ -211,10 +163,38 @@ export default function LearnPage() {
       ...scoreHistory.map((s) => (s / flashcards.length) * 100),
       100
     ).toFixed(2),
+    average:
+      scoreHistory.length > 0
+        ? (
+            scoreHistory.reduce(
+              (sum, s) => sum + (s / flashcards.length) * 100,
+              0
+            ) / scoreHistory.length
+          ).toFixed(2)
+        : "0.00",
+    recent:
+      scoreHistory.length > 0
+        ? (
+            (scoreHistory[scoreHistory.length - 1] / flashcards.length) *
+            100
+          ).toFixed(2)
+        : "0.00",
+    totalCorrect: scoreHistory.reduce((sum, s) => sum + s, 0),
+    totalQuestions: flashcards.length * scoreHistory.length,
+    trend:
+      scoreHistory.length > 1
+        ? scoreHistory[scoreHistory.length - 1] >
+          scoreHistory[scoreHistory.length - 2]
+          ? "Improving"
+          : scoreHistory[scoreHistory.length - 1] <
+            scoreHistory[scoreHistory.length - 2]
+          ? "Declining"
+          : "Stable"
+        : "N/A",
   };
 
   if (!file) {
-    return null; // Prevent rendering while redirecting
+    return null;
   }
 
   if (isQuizComplete) {
@@ -263,6 +243,30 @@ export default function LearnPage() {
             <div className="p-4 bg-neutral-800 rounded-lg">
               <h3 className="text-lg font-semibold text-white">Lowest</h3>
               <p className="text-xl text-white">{stats.lowest}%</p>
+            </div>
+            <div className="p-4 bg-neutral-800 rounded-lg">
+              <h3 className="text-lg font-semibold text-white">Average</h3>
+              <p className="text-xl text-white">{stats.average}%</p>
+            </div>
+            <div className="p-4 bg-neutral-800 rounded-lg">
+              <h3 className="text-lg font-semibold text-white">Most Recent</h3>
+              <p className="text-xl text-white">{stats.recent}%</p>
+            </div>
+            <div className="p-4 bg-neutral-800 rounded-lg">
+              <h3 className="text-lg font-semibold text-white">
+                Total Correct
+              </h3>
+              <p className="text-xl text-white">{stats.totalCorrect}</p>
+            </div>
+            <div className="p-4 bg-neutral-800 rounded-lg">
+              <h3 className="text-lg font-semibold text-white">
+                Total Questions
+              </h3>
+              <p className="text-xl text-white">{stats.totalQuestions}</p>
+            </div>
+            <div className="p-4 bg-neutral-800 rounded-lg">
+              <h3 className="text-lg font-semibold text-white">Trend</h3>
+              <p className="text-xl text-white">{stats.trend}</p>
             </div>
           </div>
         </div>
@@ -313,12 +317,12 @@ export default function LearnPage() {
                 feedback && option === flashcards[currentQuestionIndex]?.term
                   ? "bg-green-500 text-black border-green-500"
                   : feedback && option === selectedAnswer
-                  ? "bg-red-500 text-white border-red-500"
+                  ? " text-red-500 border-red-500 border-dashed"
                   : feedback
                   ? "bg-neutral-700 text-neutral-400 border-neutral-700 cursor-not-allowed"
                   : "border-[#6B00FF] text-white hover:bg-[#6B00FF] hover:text-white cursor-pointer"
               }`}
-              disabled={!!feedback} // Disable buttons after feedback is shown
+              disabled={!!feedback}
             >
               {option}
             </button>
