@@ -156,7 +156,7 @@ export default function ProjectPage() {
             <TabsTrigger value="markdown">Markdown</TabsTrigger>
           </TabsList>
           <Flashcards flashcards={flashcards || []} />
-          <FileContent content={content} />
+          {/* <FileContent content={content} /> */}
         </Tabs>
       </div>
     </div>

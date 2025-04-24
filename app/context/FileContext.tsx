@@ -16,14 +16,13 @@ interface Flashcard {
 
 interface UploadedFile {
   name: string;
-  content: string;
   flashcards: Flashcard[];
-  displayName: string; // Add display name
-  description: string; // Add description
+  displayName: string;
+  description: string;
   stats: {
-    quizScores: number[]; // Array to store quiz scores
-    firstUploaded: string; // ISO string for the first upload time
-    lastModified: string; // ISO string for the last modification time
+    quizScores: number[];
+    firstUploaded: string;
+    lastModified: string;
   };
 }
 
@@ -34,8 +33,8 @@ interface FileContextType {
   deleteFile: (fileName: string) => void;
   downloadFile: (fileName: string) => void;
   updateFile: (fileName: string, updatedFlashcards: Flashcard[]) => void;
-  recordQuizScore: (fileName: string, score: number) => void; // Expose recordQuizScore
-  getFileByName: (fileName: string) => UploadedFile | undefined; // Expose getFileByName
+  recordQuizScore: (fileName: string, score: number) => void;
+  getFileByName: (fileName: string) => UploadedFile | undefined;
 }
 
 const FileContext = createContext<FileContextType | undefined>(undefined);
@@ -59,7 +58,7 @@ export function FileProvider({ children }: { children: ReactNode }) {
     if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
     debounceTimeout.current = setTimeout(() => {
       localStorage.setItem("uploadedFiles", JSON.stringify(files));
-    }, 300); // Batch updates every 300ms
+    }, 300);
   };
 
   const parseFileContent = (content: string) => {
@@ -72,9 +71,9 @@ export function FileProvider({ children }: { children: ReactNode }) {
 
     lines.forEach((line, index) => {
       if (index === 0) {
-        displayName = line.replace("# ", "").trim(); // Extract display name
+        displayName = line.replace("# ", "").trim();
       } else if (index === 1) {
-        description = line.trim(); // Extract description
+        description = line.trim();
       } else if (line.startsWith("## ")) {
         if (currentTerm && currentDefinition) {
           flashcards.push({ term: currentTerm, definition: currentDefinition });
@@ -93,6 +92,14 @@ export function FileProvider({ children }: { children: ReactNode }) {
     return { displayName, description, flashcards };
   };
 
+  const convertToMarkdown = (file: UploadedFile) => {
+    let markdown = `# ${file.displayName}\n${file.description}\n`;
+    file.flashcards.forEach((flashcard) => {
+      markdown += `## ${flashcard.term}\n${flashcard.definition}\n`;
+    });
+    return markdown;
+  };
+
   useEffect(() => {
     if (file) {
       const reader = new FileReader();
@@ -100,15 +107,14 @@ export function FileProvider({ children }: { children: ReactNode }) {
         const content = e.target?.result as string;
         const { displayName, description, flashcards } =
           parseFileContent(content);
-        const now = new Date().toISOString(); // Current timestamp
+        const now = new Date().toISOString();
         const newFile: UploadedFile = {
           name: file.name,
-          content,
           flashcards,
           displayName,
           description,
           stats: {
-            quizScores: [], // Initialize with an empty array
+            quizScores: [],
             firstUploaded: now,
             lastModified: now,
           },
@@ -143,7 +149,8 @@ export function FileProvider({ children }: { children: ReactNode }) {
   const downloadFile = (fileName: string) => {
     const file = uploadedFiles.find((f) => f.name === fileName);
     if (file) {
-      const blob = new Blob([file.content], { type: "text/markdown" });
+      const markdown = convertToMarkdown(file);
+      const blob = new Blob([markdown], { type: "text/markdown" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -154,11 +161,10 @@ export function FileProvider({ children }: { children: ReactNode }) {
   };
 
   const updateFile = (fileName: string, updatedFlashcards: Flashcard[]) => {
-    const now = new Date().toISOString(); // Current timestamp
+    const now = new Date().toISOString();
     setUploadedFiles((prevFiles) => {
       const updatedFiles = prevFiles.map((file) => {
         if (file.name === fileName) {
-          // Ensure stats is initialized with default values
           const stats = file.stats || {
             quizScores: [],
             firstUploaded: now,
@@ -168,7 +174,7 @@ export function FileProvider({ children }: { children: ReactNode }) {
           return {
             ...file,
             flashcards: updatedFlashcards,
-            stats: { ...stats, lastModified: now }, // Update lastModified
+            stats: { ...stats, lastModified: now },
           };
         }
         return file;
@@ -182,7 +188,6 @@ export function FileProvider({ children }: { children: ReactNode }) {
     setUploadedFiles((prevFiles) => {
       const updatedFiles = prevFiles.map((file) => {
         if (file.name === fileName) {
-          // Ensure stats is initialized with default values
           const stats = file.stats || {
             quizScores: [],
             firstUploaded: new Date().toISOString(),
@@ -193,7 +198,7 @@ export function FileProvider({ children }: { children: ReactNode }) {
             ...file,
             stats: {
               ...stats,
-              quizScores: [...stats.quizScores, score], // Append the new score
+              quizScores: [...stats.quizScores, score],
             },
           };
         }
@@ -213,8 +218,8 @@ export function FileProvider({ children }: { children: ReactNode }) {
         deleteFile,
         downloadFile,
         updateFile,
-        recordQuizScore, // Expose recordQuizScore
-        getFileByName, // Expose getFileByName
+        recordQuizScore,
+        getFileByName,
       }}
     >
       {children}
